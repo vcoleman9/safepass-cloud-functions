@@ -48,4 +48,31 @@ usersRouter.post('/', async (request, response) => {
   }
 })
 
+usersRouter.get('/idFromEmail/', async (request, response) => {
+  const email = request.body.email
+  try {
+    const user = await admin.auth.getUserByEmail(email)
+    return response.json({ id: user.uid })
+  } catch (error) {
+    return response.status(404).send({ error: 'The user could not be retrieved' })
+  }
+})
+
+usersRouter.get('/emailFromId/', async (request, response) => {
+  const id = request.body.id
+  try {
+    const user = await admin.auth.getUser(id)
+    return response.json({ email: user.email })
+  } catch (error) {
+    return response.status(404).send({ error: 'The user could not be retrieved' })
+  }
+})
+
+usersRouter.delete('/:id', async (request, response) => {
+  const id = request.params.id
+  await admin.auth.deleteUser(id)
+  await admin.db.doc(`users/${id}`).delete()
+  return response.status(204).end()
+})
+
 export default usersRouter
