@@ -4,6 +4,6 @@ export interface StudentSchema {
   grade?: string,
   profilePictureUri?: string,
   school: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>,
-  schoolIssuedId: string,
-  searchName: string
+  schoolIssuedId?: string,
+  searchName?: string
 }

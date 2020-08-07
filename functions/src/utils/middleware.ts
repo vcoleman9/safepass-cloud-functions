@@ -11,6 +11,13 @@ const formatDocumentPaths = ({ body }: Request, _response: Response, next: NextF
     if (school && !school.startsWith('districts/')) {
       body.school = `${body.districts}schools/${body.school}`
     }
+  } else if (school) {
+    if (school.startsWith('districts/')) {
+      body.district = (body.school as string).split('/schools/')[ 0 ]
+    } else {
+      // Only the school ID was specified. A separate search query should be made
+      body.school = undefined
+    }
   }
   next()
 }

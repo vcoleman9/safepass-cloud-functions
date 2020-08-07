@@ -1,3 +1,4 @@
+import { UserSchema } from './../models/user'
 import express from 'express'
 import admin from './../firestoreAuthentication'
 import { pruneUndefined } from '../utils/functions'
@@ -9,12 +10,12 @@ usersRouter.post('/', async (request, response) => {
   const email: string | undefined = body.email
   const password: string | undefined = body.password
 
-  const userContent = pruneUndefined<string>({
+  const userContent: UserSchema = {
     role: body.role,
     displayName: body.displayName,
     district: body.district && admin.db.doc(body.district),
     school: body.school && admin.db.doc(body.school)
-  })
+  }
 
   if (!email || !password) {
     return response.status(400).send({ error: 'Every user must have an email and a password' })
@@ -30,7 +31,7 @@ usersRouter.post('/', async (request, response) => {
 
   try {
     const user = await admin.auth.createUser({ email: email, password: password })
-    await admin.db.collection('users').doc(user.uid).set(userContent)
+    await admin.db.collection('users').doc(user.uid).set(pruneUndefined(userContent))
     return response.json({ userId: user.uid })
   } catch (error) {
     if (error.code === 'auth/email-already-exists') {
