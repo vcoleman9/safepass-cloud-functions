@@ -1,16 +1,8 @@
 import express from 'express'
 import admin from './../firestoreAuthentication'
+import { pruneUndefined } from '../utils/functions'
 
 const usersRouter = express.Router()
-
-function pruneUndefined<T>(input: any) {
-  return Object.keys(input).reduce((accumulator: { [ k: string ]: T }, key) => {
-    if (!!input[ key ]) {
-      accumulator[ key ] = input[ key ]
-    }
-    return accumulator
-  }, {})
-}
 
 usersRouter.post('/', async (request, response) => {
   const body = request.body
