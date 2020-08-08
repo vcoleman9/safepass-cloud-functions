@@ -18,26 +18,26 @@ usersRouter.post('/', async (request, response) => {
   }
 
   if (!email || !password) {
-    return response.status(400).send({ error: 'Every user must have an email and a password' })
+    return response.status(400).json({ error: 'Every user must have an email and a password' })
   }
 
   // TODO: verify that roles are necessary
   if (!userContent.role) {
-    return response.status(400).send({ error: 'Every user must have a role' })
+    return response.status(400).json({ error: 'Every user must have a role' })
   }
   if (userContent.role !== 'admin' && userContent.role !== 'owner' && !userContent.district) {
-    return response.status(400).send({ error: 'That type of user must have an assigned district' })
+    return response.status(400).json({ error: 'That type of user must have an assigned district' })
   }
 
   try {
     const user = await admin.auth.createUser({ email: email, password: password })
-    await admin.db.collection('users').doc(user.uid).set(pruneUndefined(userContent))
+    await admin.db.collection('users').doc(user.uid).set(pruneUndefined(userContent), { merge: true })
     return response.json({ userId: user.uid })
   } catch (error) {
     if (error.code === 'auth/email-already-exists') {
-      return response.status(400).send({ error: 'That email is already in use' })
+      return response.status(400).json({ error: 'That email is already in use' })
     }
-    return response.status(400).send({ error: 'Something went wrong' })
+    return response.status(400).json({ error: 'Something went wrong' })
   }
 })
 
@@ -47,7 +47,7 @@ usersRouter.get('/idFromEmail/', async (request, response) => {
     const user = await admin.auth.getUserByEmail(email)
     return response.json({ id: user.uid })
   } catch (error) {
-    return response.status(404).send({ error: 'The user could not be retrieved' })
+    return response.status(404).json({ error: 'The user could not be retrieved' })
   }
 })
 
@@ -57,7 +57,7 @@ usersRouter.get('/emailFromId/', async (request, response) => {
     const user = await admin.auth.getUser(id)
     return response.json({ email: user.email })
   } catch (error) {
-    return response.status(404).send({ error: 'The user could not be retrieved' })
+    return response.status(404).json({ error: 'The user could not be retrieved' })
   }
 })
 

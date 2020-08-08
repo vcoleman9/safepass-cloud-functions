@@ -10,10 +10,10 @@ const app = express()
 
 app.use(middleware.formatDocumentPaths)
 
-app.use('/api/users', usersRouter)
-app.use('/api/districts', districtsRouter)
-app.use('/api/schools', schoolsRouter)
-app.use('/api/rooms', roomsRouter)
-app.use('/api/students', studentsRouter)
+app.use('/users', usersRouter)
+app.use('/districts', districtsRouter)
+app.use('/schools', schoolsRouter)
+app.use('/rooms', roomsRouter)
+app.use('/students', studentsRouter)
 
 export default app

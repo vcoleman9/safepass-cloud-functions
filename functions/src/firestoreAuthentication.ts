@@ -1,8 +1,8 @@
 import admin from 'firebase-admin'
-const serviceAccount = require('../../../../../.firebasekeys/service-account-file.json')
 
+// TODO: Require tokens in other requests. Either through IAM or rules, need to verify access is allowed
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.applicationDefault(),
   databaseURL: "https://safepass-76e29.firebaseio.com"
 })
 
