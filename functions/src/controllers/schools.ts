@@ -6,21 +6,36 @@ import { pruneUndefined } from '../utils/functions'
 const schoolsRouter = express.Router()
 
 schoolsRouter.post('/', async (request, response) => {
-  // TODO: Use token to extract district from user if its not supplied in the body
-  const district = request.body.district
+  const districtPath = request.districtPath
 
-  const schoolData: SchoolSchema = {
-    name: request.body.name
+  if (!districtPath) {
+    return response.status(404).json({ error: 'District path must be specified' })
   }
+
+  const schoolData: SchoolSchema = { ...request.body }
 
   if (!schoolData.name) {
     return response.status(400).json({ error: 'A school must have a name' })
-  } else if (!district) {
-    return response.status(400).json({ error: 'A school must have a district' })
   }
 
-  const createdSchool = await admin.db.doc(district).collection('schools').add(pruneUndefined(schoolData))
-  return response.json({ schoolPath: createdSchool.path })
+  try {
+    const createdSchool = await admin.db.collection(`${districtPath}/schools`).add(pruneUndefined(schoolData))
+    const snap = await createdSchool.get()
+    return response.json({ id: snap.id, ...snap.data() })
+  } catch (error) {
+    return response.status(400).json({ error: error.code })
+  }
 })
+
+// schoolsRouter.put('/', async (request, respose) => {
+//   // TODO: Use token to extract district from user if it's not supplied in the body
+//   const school = request.body.school
+
+//   const schoolData: SchoolSchema = {
+//     name: request.body.name
+//   }
+
+//   const updatedSchool
+// })
 
 export default schoolsRouter

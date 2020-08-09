@@ -1,4 +1,5 @@
 import admin from 'firebase-admin'
+require('dotenv').config()
 
 // TODO: Require tokens in other requests. Either through IAM or rules, need to verify access is allowed
 admin.initializeApp({

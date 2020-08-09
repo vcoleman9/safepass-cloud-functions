@@ -1,0 +1,19 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "passes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "issuingUser",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "endTime",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

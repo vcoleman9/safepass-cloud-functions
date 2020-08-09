@@ -11,8 +11,7 @@ usersRouter.post('/', async (request, response) => {
   const password: string | undefined = body.password
 
   const userContent: UserSchema = {
-    role: body.role,
-    displayName: body.displayName,
+    ...request.body,
     district: body.district && admin.db.doc(body.district),
     school: body.school && admin.db.doc(body.school)
   }
@@ -29,6 +28,8 @@ usersRouter.post('/', async (request, response) => {
     return response.status(400).json({ error: 'That type of user must have an assigned district' })
   }
 
+  // TODO: Remove the document creation
+  // Should be done automatically with a cloud function
   try {
     const user = await admin.auth.createUser({ email: email, password: password })
     await admin.db.collection('users').doc(user.uid).set(pruneUndefined(userContent), { merge: true })
@@ -37,12 +38,13 @@ usersRouter.post('/', async (request, response) => {
     if (error.code === 'auth/email-already-exists') {
       return response.status(400).json({ error: 'That email is already in use' })
     }
-    return response.status(400).json({ error: 'Something went wrong' })
+    return response.status(400).json({ error: error.code })
   }
 })
 
-usersRouter.get('/idFromEmail/', async (request, response) => {
-  const email = request.body.email
+// TODO: Verify necessary/replace with cloud function that includes email in user documents
+usersRouter.get('/idFromEmail/:email', async (request, response) => {
+  const email = request.params.email
   try {
     const user = await admin.auth.getUserByEmail(email)
     return response.json({ id: user.uid })
@@ -51,8 +53,8 @@ usersRouter.get('/idFromEmail/', async (request, response) => {
   }
 })
 
-usersRouter.get('/emailFromId/', async (request, response) => {
-  const id = request.body.id
+usersRouter.get('/emailFromId/:id', async (request, response) => {
+  const id = request.params.id
   try {
     const user = await admin.auth.getUser(id)
     return response.json({ email: user.email })

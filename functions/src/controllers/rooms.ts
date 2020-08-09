@@ -5,29 +5,40 @@ import { pruneUndefined } from '../utils/functions'
 
 const roomsRouter = express.Router()
 
+// To follow REST principals, the school path must be in the url for uniquely identifying,
+// and because it is not in the resource, it should not be in the body.
 roomsRouter.post('/', async (request, response) => {
-  // TODO: Use token to extract district from user if its not supplied in the body
-  const school = request.body.school
+  const schoolPath = request.schoolPath
 
-
-  // Question: Do something when personCount > maxPersonCount or is that frontend only/cloud function alert
-  const roomData: RoomSchema = {
-    name: request.body.name,
-    category: request.body.category,
-    maxPersonCount: request.body.maxPersonCount,
-    personCount: request.body.personCount
+  if (!schoolPath) {
+    return response.status(404).json({ error: 'School path must be specified' })
   }
+
+  // Question: Do something when personCount > maxPersonCount or is that frontend only/cloud function alert?
+  const roomData: RoomSchema = { ...request.body }
 
   if (!roomData.name) {
     return response.status(400).json({ error: 'A room must have a name' })
-  } else if (!school) {
-    return response.status(400).json({ error: 'A room can only exist in a school' })
   }
 
-  const createdRoom = await admin.db.doc(school).collection('rooms').add(pruneUndefined(roomData))
-  return response.json({ roomPath: createdRoom.path })
+  try {
+    const createdRoom = await admin.db.collection(`${schoolPath}/rooms`).add(pruneUndefined(roomData))
+    const snap = await createdRoom.get()
+    return response.json({ id: snap.id, ...snap.data() })
+  } catch (error) {
+    return response.status(400).json({ error: error.code })
+  }
 })
 
+// roomsRouter.put('/', async (request, response) => {
+//   // Question: Do something when personCount > maxPersonCount or is that frontend only/cloud function alert
+//   const roomData: RoomSchema = {
+//     name: request.body.name,
+//     category: request.body.category,
+//     maxPersonCount: request.body.maxPersonCount,
+//     personCount: request.body.personCount
+//   }
+// })
 
 // TODO: Check if necessary. If so then during room creation check existing categories.
 // roomsRouter.post('/categories', async (request, response) => {
