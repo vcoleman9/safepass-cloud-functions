@@ -15,11 +15,11 @@ schoolsRouter.post('/', async (request, response) => {
     const decoded = await admin.auth.verifyIdToken(token)
     const userSnap = await admin.db.doc(`users/${decoded.uid}`).get()
     const snapData = userSnap.data()
-    if (!snapData || snapData.role !== 'admin' || snapData.role !== 'district_admin') {
-      return response.status(401).json({ error: 'User is not authorized to do that' })
+    if (!snapData || (snapData.role !== 'admin' && snapData.role !== 'district_admin' && snapData.role !== 'owner')) {
+      return response.status(401).json({ error: `User is not authorized to do that` })
     }
   } catch (error) {
-    return response.status(401).json({ error })
+    return response.status(401).json({ ...error })
   }
 
   const districtPath = request.districtPath
@@ -39,7 +39,7 @@ schoolsRouter.post('/', async (request, response) => {
     const snap = await createdSchool.get()
     return response.json({ id: snap.id, ...snap.data() })
   } catch (error) {
-    return response.status(400).json({ error: error.code })
+    return response.status(400).json({ ...error })
   }
 })
 

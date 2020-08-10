@@ -41,7 +41,7 @@ usersRouter.post('/', async (request, response) => {
     if (error.code === 'auth/email-already-exists') {
       return response.status(400).json({ error: 'That email is already in use' })
     }
-    return response.status(400).json({ error: error.code })
+    return response.status(400).json({ ...error })
   }
 })
 

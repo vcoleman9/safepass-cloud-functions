@@ -19,7 +19,7 @@ districtsRouter.post('/', async (request, response) => {
       return response.status(401).json({ error: 'User is not authorized to do that' })
     }
   } catch (error) {
-    return response.status(401).json({ error })
+    return response.status(401).json({ ...error })
   }
 
   const districtData: DistrictSchema = { ...request.body }
@@ -34,7 +34,7 @@ districtsRouter.post('/', async (request, response) => {
     const snap = await createdDistrict.get()
     return response.json({ id: snap.id, ...snap.data() })
   } catch (error) {
-    return response.status(400).json({ error: error.code })
+    return response.status(400).json({ ...error })
   }
 })
 

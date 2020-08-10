@@ -17,7 +17,7 @@ studentsRouter.post('/', async (request, response) => {
     const decoded = await admin.auth.verifyIdToken(token)
     const userSnap = await admin.db.doc(`users/${decoded.uid}`).get()
     const snapData = userSnap.data()
-    if (!snapData || snapData.role !== 'admin' || snapData.role !== 'district_admin') {
+    if (!snapData || (snapData.role !== 'admin' && snapData.role !== 'district_admin')) {
       return response.status(401).json({ error: 'User is not authorized to do that' })
     }
   } catch (error) {
@@ -51,7 +51,7 @@ studentsRouter.post('/', async (request, response) => {
     const snap = await createdStudent.get()
     return response.json({ id: snap.id, ...snap.data() })
   } catch (error) {
-    return response.status(400).json({ error: error.code })
+    return response.status(400).json({ ...error })
   }
 })
 
