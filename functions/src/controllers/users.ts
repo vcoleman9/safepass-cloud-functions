@@ -5,6 +5,8 @@ import { pruneUndefined } from '../utils/functions'
 
 const usersRouter = express.Router()
 
+
+// Should not exist/redundant once cloud function implementation for user().onCreate() is live
 usersRouter.post('/', async (request, response) => {
   const body = request.body
   const email: string | undefined = body.email
@@ -12,6 +14,7 @@ usersRouter.post('/', async (request, response) => {
 
   const userContent: UserSchema = {
     ...request.body,
+    password: null,
     district: body.district && admin.db.doc(body.district),
     school: body.school && admin.db.doc(body.school)
   }
@@ -43,31 +46,31 @@ usersRouter.post('/', async (request, response) => {
 })
 
 // TODO: Verify necessary/replace with cloud function that includes email in user documents
-usersRouter.get('/idFromEmail/:email', async (request, response) => {
-  const email = request.params.email
-  try {
-    const user = await admin.auth.getUserByEmail(email)
-    return response.json({ id: user.uid })
-  } catch (error) {
-    return response.status(404).json({ error: 'The user could not be retrieved' })
-  }
-})
+// usersRouter.get('/idFromEmail/:email', async (request, response) => {
+//   const email = request.params.email
+//   try {
+//     const user = await admin.auth.getUserByEmail(email)
+//     return response.json({ id: user.uid })
+//   } catch (error) {
+//     return response.status(404).json({ error: 'The user could not be retrieved' })
+//   }
+// })
 
-usersRouter.get('/emailFromId/:id', async (request, response) => {
-  const id = request.params.id
-  try {
-    const user = await admin.auth.getUser(id)
-    return response.json({ email: user.email })
-  } catch (error) {
-    return response.status(404).json({ error: 'The user could not be retrieved' })
-  }
-})
+// usersRouter.get('/emailFromId/:id', async (request, response) => {
+//   const id = request.params.id
+//   try {
+//     const user = await admin.auth.getUser(id)
+//     return response.json({ email: user.email })
+//   } catch (error) {
+//     return response.status(404).json({ error: 'The user could not be retrieved' })
+//   }
+// })
 
-usersRouter.delete('/:id', async (request, response) => {
-  const id = request.params.id
-  await admin.auth.deleteUser(id)
-  await admin.db.doc(`users/${id}`).delete()
-  return response.status(204).end()
-})
+// usersRouter.delete('/:id', async (request, response) => {
+//   const id = request.params.id
+//   await admin.auth.deleteUser(id)
+//   await admin.db.doc(`users/${id}`).delete()
+//   return response.status(204).end()
+// })
 
 export default usersRouter

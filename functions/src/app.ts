@@ -5,10 +5,12 @@ import schoolsRouter from './controllers/schools'
 import roomsRouter from './controllers/rooms'
 import studentsRouter from './controllers/students'
 import cors from 'cors'
+import middleware from './utils/middleware'
 
 const app = express()
 
 app.use(cors())
+app.use(middleware.tokenExtractor)
 
 app.use('/users', usersRouter)
 app.use('/districts', districtsRouter)

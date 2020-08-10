@@ -8,6 +8,22 @@ const studentsRouter = express.Router()
 // To follow REST principals, the school path must be in the url for uniquely identifying
 // and separately it must be in the body because the school is part of the resource/in the doc.
 studentsRouter.post('/', async (request, response) => {
+  try {
+    const token = request.token
+    if (!token) {
+      return response.status(401).json({ error: 'token missing or invalid' })
+    }
+
+    const decoded = await admin.auth.verifyIdToken(token)
+    const userSnap = await admin.db.doc(`users/${decoded.uid}`).get()
+    const snapData = userSnap.data()
+    if (!snapData || snapData.role !== 'admin' || snapData.role !== 'district_admin') {
+      return response.status(401).json({ error: 'User is not authorized to do that' })
+    }
+  } catch (error) {
+    return response.status(401).json({ error })
+  }
+
   const schoolPath = request.schoolPath
   const school = request.body.school
 
