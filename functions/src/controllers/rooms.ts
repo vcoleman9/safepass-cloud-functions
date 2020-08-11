@@ -1,7 +1,7 @@
 import { RoomSchema } from './../models/room'
 import express from 'express'
 import admin from '../firestoreAuthentication'
-import { pruneUndefined } from '../utils/functions'
+import { pruneUndefined, tokenMatchesOneOfRoles } from '../utils/functions'
 
 const roomsRouter = express.Router()
 
@@ -9,15 +9,8 @@ const roomsRouter = express.Router()
 // and because it is not in the resource, it should not be in the body.
 roomsRouter.post('/', async (request, response) => {
   try {
-    const token = request.token
-    if (!token) {
-      return response.status(401).json({ error: 'token missing or invalid' })
-    }
-
-    const decoded = await admin.auth.verifyIdToken(token)
-    const userSnap = await admin.db.doc(`users/${decoded.uid}`).get()
-    const snapData = userSnap.data()
-    if (!snapData || (snapData.role !== 'admin' && snapData.role !== 'district_admin')) {
+    const verified = tokenMatchesOneOfRoles(request.token, 'admin', 'district_admin')
+    if (!verified) {
       return response.status(401).json({ error: 'User is not authorized to do that' })
     }
   } catch (error) {

@@ -1,7 +1,7 @@
 import { StudentSchema } from './../models/student'
 import express from 'express'
 import admin from '../firestoreAuthentication'
-import { pruneUndefined } from '../utils/functions'
+import { pruneUndefined, tokenMatchesOneOfRoles, } from '../utils/functions'
 
 const studentsRouter = express.Router()
 
@@ -9,19 +9,12 @@ const studentsRouter = express.Router()
 // and separately it must be in the body because the school is part of the resource/in the doc.
 studentsRouter.post('/', async (request, response) => {
   try {
-    const token = request.token
-    if (!token) {
-      return response.status(401).json({ error: 'token missing or invalid' })
-    }
-
-    const decoded = await admin.auth.verifyIdToken(token)
-    const userSnap = await admin.db.doc(`users/${decoded.uid}`).get()
-    const snapData = userSnap.data()
-    if (!snapData || (snapData.role !== 'admin' && snapData.role !== 'district_admin')) {
+    const verified = await tokenMatchesOneOfRoles(request.token, 'admin', 'district_admin')
+    if (!verified) {
       return response.status(401).json({ error: 'User is not authorized to do that' })
     }
   } catch (error) {
-    return response.status(401).json({ error })
+    return response.status(401).json({ ...error })
   }
 
   const schoolPath = request.schoolPath

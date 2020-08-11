@@ -1,21 +1,14 @@
 import { DistrictSchema } from './../models/district'
 import express from 'express'
 import admin from '../firestoreAuthentication'
-import { pruneUndefined } from '../utils/functions'
+import { pruneUndefined, tokenMatchesOneOfRoles } from '../utils/functions'
 
 const districtsRouter = express.Router()
 
 districtsRouter.post('/', async (request, response) => {
   try {
-    const token = request.token
-    if (!token) {
-      return response.status(401).json({ error: 'token missing or invalid' })
-    }
-
-    const decoded = await admin.auth.verifyIdToken(token)
-    const userSnap = await admin.db.doc(`users/${decoded.uid}`).get()
-    const snapData = userSnap.data()
-    if (!snapData || snapData.role !== 'admin') {
+    const verified = tokenMatchesOneOfRoles(request.token, 'admin')
+    if (!verified) {
       return response.status(401).json({ error: 'User is not authorized to do that' })
     }
   } catch (error) {
