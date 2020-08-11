@@ -9,10 +9,7 @@ const roomsRouter = express.Router()
 // and because it is not in the resource, it should not be in the body.
 roomsRouter.post('/', async (request, response) => {
   try {
-    const verified = tokenMatchesOneOfRoles(request.token, 'admin', 'district_admin')
-    if (!verified) {
-      return response.status(401).json({ error: 'User is not authorized to do that' })
-    }
+    await tokenMatchesOneOfRoles(request.token, 'admin', 'district_admin')
   } catch (error) {
     return response.status(401).json({ ...error })
   }
@@ -39,40 +36,28 @@ roomsRouter.post('/', async (request, response) => {
   }
 })
 
-// roomsRouter.put('/', async (request, response) => {
-//   // Question: Do something when personCount > maxPersonCount or is that frontend only/cloud function alert
-//   const roomData: RoomSchema = {
-//     name: request.body.name,
-//     category: request.body.category,
-//     maxPersonCount: request.body.maxPersonCount,
-//     personCount: request.body.personCount
-//   }
-// })
+roomsRouter.put('/:roomId', async (request, response) => {
+  try {
+    await tokenMatchesOneOfRoles(request.token, 'admin', 'district_admin')
+  } catch (error) {
+    return response.status(401).json({ ...error })
+  }
 
-// TODO: Check if necessary. If so then during room creation check existing categories.
-// roomsRouter.post('/categories', async (request, response) => {
-//   const categoryName = request.body.categoryName
-//   const school = request.body.school
+  const schoolPath = request.schoolPath
 
-//   if (!categoryName) {
-//     return response.status(400).json({ error: 'You must name the room category for creation' })
-//   } else if (!school) {
-//     return response.status(400).json({ error: 'You must give the school for which you would like to define a new category of room' })
-//   }
+  if (!schoolPath) {
+    return response.status(404).json({ error: 'School path must be specified' })
+  }
 
-//   const rooms = admin.db.doc(`${school}/rooms/categories`)
+  const roomPath = `${schoolPath}/rooms/${request.params.roomId}`
+  const roomData: RoomSchema = { ...request.body }
 
-//   try {
-//     const newCategories = await admin.db.runTransaction(async transaction => {
-//       const snap = await transaction.get(rooms)
-//       const newCategories = [ ...snap.get('categories'), categoryName ]
-//       transaction.update(rooms, 'categories', newCategories)
-//       return newCategories
-//     })
-//     return response.json({ roomCategories: newCategories })
-//   } catch (error) {
-//     return response.status(400).send(error)
-//   }
-// })
+  try {
+    await admin.db.doc(roomPath).set(pruneUndefined(roomData), { merge: true })
+    return response.status(200)
+  } catch (error) {
+    return response.status(400).json({ ...error })
+  }
+})
 
 export default roomsRouter

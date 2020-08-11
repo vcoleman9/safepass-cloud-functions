@@ -17,7 +17,7 @@ export function userIsOneOfRoles(
   return userDoc !== undefined && roles.includes(userDoc.role)
 }
 
-export async function tokenMatchesOneOfRoles(tokenId: string | null, ...roles: string[]): Promise<boolean> {
+export async function tokenMatchesOneOfRoles(tokenId: string | null, ...roles: string[]): Promise<void> {
   if (!tokenId) {
     throw { error: 'token missing or invalid' }
   }
@@ -25,5 +25,9 @@ export async function tokenMatchesOneOfRoles(tokenId: string | null, ...roles: s
   const decoded = await admin.auth.verifyIdToken(tokenId)
   const userSnap = await admin.db.doc(`users/${decoded.uid}`).get()
   const userDoc = userSnap.data()
-  return userDoc !== undefined && roles.includes(userDoc.role)
+  if (userDoc !== undefined && roles.includes(userDoc.role)) {
+    return
+  } else {
+    throw { error: 'User is not authorized to do that' }
+  }
 }

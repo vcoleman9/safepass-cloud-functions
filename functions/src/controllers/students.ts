@@ -9,10 +9,7 @@ const studentsRouter = express.Router()
 // and separately it must be in the body because the school is part of the resource/in the doc.
 studentsRouter.post('/', async (request, response) => {
   try {
-    const verified = await tokenMatchesOneOfRoles(request.token, 'admin', 'district_admin')
-    if (!verified) {
-      return response.status(401).json({ error: 'User is not authorized to do that' })
-    }
+    await tokenMatchesOneOfRoles(request.token, 'admin', 'district_admin')
   } catch (error) {
     return response.status(401).json({ ...error })
   }
@@ -46,6 +43,34 @@ studentsRouter.post('/', async (request, response) => {
   } catch (error) {
     return response.status(400).json({ ...error })
   }
+})
+
+studentsRouter.put('/:studentId', async (request, response) => {
+  try {
+    await tokenMatchesOneOfRoles(request.token, 'admin', 'district_admin')
+  } catch (error) {
+    return response.status(401).json({ ...error })
+  }
+
+  const schoolPath = request.schoolPath
+
+  if (!schoolPath) {
+    return response.status(404).json({ error: 'School path must be specified' })
+  }
+
+  const studentData: StudentSchema = {
+    school: request.body.school && admin.db.doc(request.body.school),
+    ...request.body
+  }
+
+  const studentPath = `${schoolPath}/students/${request.params.studentId}`
+  try {
+    await admin.db.doc(studentPath).set(pruneUndefined(studentData), { merge: true })
+    return response.status(200)
+  } catch (error) {
+    return response.status(400).json({ ...error })
+  }
+
 })
 
 export default studentsRouter

@@ -7,10 +7,7 @@ const districtsRouter = express.Router()
 
 districtsRouter.post('/', async (request, response) => {
   try {
-    const verified = tokenMatchesOneOfRoles(request.token, 'admin')
-    if (!verified) {
-      return response.status(401).json({ error: 'User is not authorized to do that' })
-    }
+    await tokenMatchesOneOfRoles(request.token, 'admin')
   } catch (error) {
     return response.status(401).json({ ...error })
   }
@@ -31,18 +28,25 @@ districtsRouter.post('/', async (request, response) => {
   }
 })
 
-// districtsRouter.put('/:districtPath', async (request, response) => {
-//   const districtPath = request.params.districtPath
-//   const districtData: DistrictSchema = {
-//     name: request.body.name
-//   }
+districtsRouter.put('/:districtId', async (request, response) => {
+  try {
+    await tokenMatchesOneOfRoles(request.token, 'admin', 'district_admin')
+  } catch (error) {
+    return response.status(401).json({ ...error })
+  }
 
-//   try {
-//     await admin.db.doc(districtPath).set(pruneUndefined(districtData), { merge: true })
-//     return response.status(200)
-//   } catch (error) {
-//     return response.status(400).json({ error: error.code })
-//   }
-// })
+  const districtData: DistrictSchema = { ...request.body }
+
+  if (!request.districtPath) {
+    return response.status(400).json({ error: "Middleware/routing failure: districtId not matched" })
+  }
+
+  try {
+    await admin.db.doc(request.districtPath).set(pruneUndefined(districtData), { merge: true })
+    return response.status(200)
+  } catch (error) {
+    return response.status(400).json({ error: error.code })
+  }
+})
 
 export default districtsRouter

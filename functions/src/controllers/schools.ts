@@ -7,10 +7,7 @@ const schoolsRouter = express.Router()
 
 schoolsRouter.post('/', async (request, response) => {
   try {
-    const verified = await tokenMatchesOneOfRoles(request.token, 'admin', 'district_admin', 'owner')
-    if (!verified) {
-      return response.status(401).json({ error: `User is not authorized to do that` })
-    }
+    await tokenMatchesOneOfRoles(request.token, 'admin', 'district_admin', 'owner')
   } catch (error) {
     return response.status(401).json({ ...error })
   }
@@ -36,15 +33,27 @@ schoolsRouter.post('/', async (request, response) => {
   }
 })
 
-// schoolsRouter.put('/', async (request, respose) => {
-//   // TODO: Use token to extract district from user if it's not supplied in the body
-//   const school = request.body.school
+schoolsRouter.put('/:schoolId', async (request, response) => {
+  try {
+    await tokenMatchesOneOfRoles(request.token, 'admin', 'district_admin', 'owner')
+  } catch (error) {
+    return response.status(401).json({ ...error })
+  }
 
-//   const schoolData: SchoolSchema = {
-//     name: request.body.name
-//   }
+  const schoolPath = request.schoolPath
 
-//   const updatedSchool
-// })
+  if (!schoolPath) {
+    return response.status(404).json({ error: 'School path must be specified' })
+  }
+  const schoolData: SchoolSchema = { ...request.body }
+
+  try {
+    await admin.db.doc(schoolPath).set(pruneUndefined(schoolData), { merge: true })
+
+    return response.status(200)
+  } catch (error) {
+    return response.status(400).json({ ...error })
+  }
+})
 
 export default schoolsRouter
